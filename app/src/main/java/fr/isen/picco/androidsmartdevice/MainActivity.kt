@@ -1,7 +1,11 @@
 package fr.isen.picco.androidsmartdevice
 
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -19,11 +23,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.ContextCompat.startActivity
 import fr.isen.picco.androidsmartdevice.ui.theme.AndroidSmartDeviceTheme
 
 class MainActivity : ComponentActivity() {
@@ -40,6 +47,7 @@ class MainActivity : ComponentActivity() {
                         onStartScan = {
                             val intent = Intent(this, ScanActivity::class.java)
                             startActivity(intent)
+
                         }
                     )
                 }
@@ -49,7 +57,12 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppIntroScreen(modifier: Modifier = Modifier, onStartScan: () -> Unit) {
+fun AppIntroScreen(
+    modifier: Modifier = Modifier,
+    onStartScan: () -> Unit
+) {
+    val context = LocalContext.current  // Récupérer le contexte
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -57,40 +70,37 @@ fun AppIntroScreen(modifier: Modifier = Modifier, onStartScan: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Icône de l'application (remplace `R.drawable.your_icon` par ton icône)
+        Text(
+            text = "Android Smart Device",
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold
+        )
         Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+            painter = painterResource(id = R.drawable.logo),
             contentDescription = "App Icon",
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier.size(300.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Titre
         Text(
-            text = "Android Smart Device",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
+            text = "Bienvenue dans votre application Android Smart Device, appuyer sur 'Lancer le scan'.",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.W900
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Description
         Text(
             text = "Cette application permet de scanner les appareils BLE à proximité.",
-            fontSize = 16.sp
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Bouton pour lancer le scan
-        Button(onClick = onStartScan) {
+        Button(onClick = {
+            val intent = Intent(context, ScanActivity::class.java)
+            context.startActivity(intent) // Utiliser `context.startActivity`
+        }) {
             Text("Lancer le scan")
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewAppIntroScreen() {
-    AndroidSmartDeviceTheme {
-        AppIntroScreen(onStartScan = {})
     }
 }
