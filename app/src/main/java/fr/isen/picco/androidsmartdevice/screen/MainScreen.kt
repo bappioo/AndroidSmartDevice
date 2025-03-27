@@ -1,6 +1,5 @@
 package fr.isen.picco.androidsmartdevice.screen
 
-import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,14 +19,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.isen.picco.androidsmartdevice.R
-import fr.isen.picco.androidsmartdevice.ScanActivity
 
 @Composable
 fun AppIntroScreen(
-    modifier: Modifier = Modifier,
-    onStartScan: () -> Unit
+    onStartScan: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current  // Récupérer le contexte
+    val context = LocalContext.current
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -62,8 +61,7 @@ fun AppIntroScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
-            val intent = Intent(context, ScanActivity::class.java)
-            context.startActivity(intent) // Utiliser `context.startActivity`
+            onStartScan()
         }) {
             Text("Lancer le scan")
         }
