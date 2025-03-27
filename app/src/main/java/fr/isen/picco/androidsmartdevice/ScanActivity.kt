@@ -5,13 +5,10 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.BluetoothLeScanner
-import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanSettings
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.wifi.ScanResult
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -43,26 +40,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import fr.isen.picco.androidsmartdevice.ui.theme.AndroidSmartDeviceTheme
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import fr.isen.picco.androidsmartdevice.ui.theme.AndroidSmartDeviceTheme
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanResult
 
 class ScanActivity : ComponentActivity() {
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bluetoothLeScanner: BluetoothLeScanner? = null
     private val scannedDevices = mutableStateListOf<String>()
+    private val requestCodePermissions = 101
 
-    private val REQUEST_CODE_PERMISSIONS = 101
-
-    private val REQUIRED_PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    private val requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         arrayOf(
             Manifest.permission.BLUETOOTH_SCAN,
             Manifest.permission.BLUETOOTH_CONNECT,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.BLUETOOTH_ADMIN
+
         )
     } else {
         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -76,6 +74,16 @@ class ScanActivity : ComponentActivity() {
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager?
         bluetoothAdapter = bluetoothManager?.adapter
 
+        fun hasPermissions(): Boolean {
+            return requiredPermissions.all {
+                ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+            }
+        }
+
+        if (!hasPermissions()) {
+            ActivityCompat.requestPermissions(this, requiredPermissions, requestCodePermissions)
+        }
+
         if (bluetoothAdapter == null) {
             Toast.makeText(this, "Bluetooth non disponible sur cet appareil", Toast.LENGTH_LONG).show()
             finish()
@@ -84,14 +92,7 @@ class ScanActivity : ComponentActivity() {
 
         bluetoothLeScanner = bluetoothAdapter?.bluetoothLeScanner
 
-        // Demander les permissions nécessaires
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(
-                Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ), 1)
-        }
+
 
         setContent {
             AndroidSmartDeviceTheme {
@@ -103,8 +104,25 @@ class ScanActivity : ComponentActivity() {
         }
     }
 
+    private val scanCallback = object : ScanCallback() {
+        @SuppressLint("MissingPermission")
+        override fun onScanResult(callbackType: Int, result: ScanResult) {
+            val device = result.device
+            val deviceInfo = "${device.name ?: "Unknown"} - ${device.address}"
+            if (!scannedDevices.contains(deviceInfo)) {
+                scannedDevices.add(deviceInfo)
+            }
+        }
+
+        override fun onScanFailed(errorCode: Int) {
+            Toast.makeText(this@ScanActivity, "Erreur de scan: $errorCode", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     @SuppressLint("MissingPermission")
     private fun startBLEScan(isScanning: Boolean) {
+        bluetoothLeScanner?.stopScan(scanCallback)
+
         if (isScanning) {
             scannedDevices.clear()
             val scanCallback = object : ScanCallback() {
@@ -131,12 +149,11 @@ class ScanActivity : ComponentActivity() {
                 .build()
 
             bluetoothLeScanner?.startScan(scanFilters, scanSettings, scanCallback)
-        } else bluetoothLeScanner?.stopScan(stopService(null))
-    }
-}
+        } else {
+            bluetoothLeScanner?.stopScan(scanCallback)
+        }
 
-private fun BluetoothLeScanner?.stopScan(stopService: Boolean) {
-    TODO("Not yet implemented")
+    }
 }
 
 @Composable
