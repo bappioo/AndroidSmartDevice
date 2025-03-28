@@ -22,6 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import fr.isen.picco.androidsmartdevice.R
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @Composable
 fun ScanScreen(
@@ -30,6 +38,17 @@ fun ScanScreen(
     onScanToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var searchQuery by remember { mutableStateOf("") }
+    val filteredDevices = remember(scannedDevices, searchQuery) {
+        if (searchQuery.isBlank()) {
+            scannedDevices
+        } else {
+            scannedDevices.filter { device ->
+                device.contains(searchQuery, ignoreCase = true)
+            }
+        }
+    }
+
     Column(
         modifier = modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -37,27 +56,37 @@ fun ScanScreen(
         Text(
             text = "Scan BLE",
             style = MaterialTheme.typography.headlineLarge,
-            modifier = Modifier.padding(top = 40.dp)
+            modifier = Modifier.padding(top = 30.dp)
         )
 
         Image(
             painter = painterResource(id = if (isScanning) R.drawable.ic_stop else R.drawable.ic_scan),
             contentDescription = "Scan BLE",
             modifier = Modifier
-                .size(250.dp)
+                .size(200.dp)
                 .clickable(onClick = onScanToggle)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
         Text(
-            text = if (isScanning) "Scanning..." else "Scan arrêté",
-            style = MaterialTheme.typography.bodyLarge
+            text = if (isScanning) "Scanning en cours..." else "Scan arrêté",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(vertical = 8.dp)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        // Barre de recherche placée ici
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("Rechercher un appareil") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Recherche") },
+            singleLine = true
+        )
 
-        DeviceList(devices = scannedDevices)
+        // Liste des appareils
+        DeviceList(devices = filteredDevices)
     }
 }
 
