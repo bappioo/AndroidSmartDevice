@@ -65,5 +65,6 @@ fun AppIntroScreen(
         }) {
             Text("Lancer le scan")
         }
+
     }
 }

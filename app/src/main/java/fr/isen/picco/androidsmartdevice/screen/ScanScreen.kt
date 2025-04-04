@@ -87,7 +87,9 @@ fun ScanScreen(
 
         // Liste des appareils
         DeviceList(devices = filteredDevices)
-    }
+
+
+ }
 }
 
 @Composable
