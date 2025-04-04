@@ -152,8 +152,7 @@ fun LedControl(index: Int, isOn: Boolean, onToggle: (Int) -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Remplacez R.drawable.bulb_on et R.drawable.bulb_off par vos propres ressources
-        val imageRes = if (isOn) R.drawable.ic_scan else R.drawable.ic_stop
+        val imageRes = if (isOn) R.drawable.led_on else R.drawable.led_off
 
         IconButton(
             onClick = { onToggle(index) },

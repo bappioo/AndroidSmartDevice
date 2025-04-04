@@ -77,9 +77,9 @@ class ScanActivity : ComponentActivity() {
             AndroidSmartDeviceTheme {
                 ScanScreen(
                     scannedDevices = scannedDevices,
-                    isScanning = isScanning, // Ajout du paramètre
+                    isScanning = isScanning,            // Ajout du paramètre
                     onScanToggle = {
-                        isScanning = !isScanning // Mise à jour de l'état
+                        isScanning = !isScanning        // Mise à jour de l'état
                         startBLEScan(isScanning)
                     }
                 )
